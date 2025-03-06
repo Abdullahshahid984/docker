@@ -23,15 +23,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'email-credentials', usernameVariable: 'EMAIL_SENDER', passwordVariable: 'EMAIL_PASSWORD')]) {
-                        sh """
-                            docker run --rm \
-                              -e EMAIL_SENDER="${EMAIL_SENDER}" \
-                              -e EMAIL_PASSWORD="${EMAIL_PASSWORD}" \
-                              -e EMAIL_RECEIVER="${EMAIL_SENDER}" \
-                              ${IMAGE_NAME}
-                        """
-                    }
+                    sh "docker run --rm ${IMAGE_NAME}"
                 }
             }
         }
@@ -39,10 +31,16 @@ pipeline {
 
     post {
         success {
-            echo "✅ Email sent successfully!"
+            emailext subject: '✅ Jenkins Pipeline Success', 
+                     body: 'The pipeline executed successfully.', 
+                     to: 'your-email@example.com', 
+                     from: 'jenkins@example.com'
         }
         failure {
-            echo "❌ Email sending failed!"
+            emailext subject: '❌ Jenkins Pipeline Failure', 
+                     body: 'The pipeline failed. Please check the logs.', 
+                     to: 'your-email@example.com', 
+                     from: 'jenkins@example.com'
         }
     }
 }
