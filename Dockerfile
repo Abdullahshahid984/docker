@@ -17,11 +17,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install dependencies inside the virtual environment
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set environment variables
-ENV EMAIL_SENDER=""
-ENV EMAIL_PASSWORD=""
-ENV EMAIL_RECEIVER=""
-
 # Default command
-CMD ["sh", "-c", "if [ -f convert.py ]; then python convert.py; fi && if [ -f send_email.py ]; then python send_email.py; fi"]
-
+CMD ["sh", "-c", "if [ -f convert.py ]; then python convert.py; fi"]
