@@ -1,11 +1,11 @@
-# Use an official Python image
-FROM python:3.12-slim
+# Use an official Alpine-based Python image
+FROM python:3.12-alpine
 
 # Set the working directory
 WORKDIR /app
 
 # Install required system dependencies
-RUN apt-get update && apt-get install -y libreoffice && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache libreoffice 
 
 # Copy files
 COPY . /app/
