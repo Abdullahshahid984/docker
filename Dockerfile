@@ -7,8 +7,8 @@ WORKDIR /app
 # Install required system dependencies
 RUN apk add --no-cache libreoffice 
 
-# Copy files
-COPY . /app/
+# Copy application files
+COPY . .
 
 # Create and activate a virtual environment
 RUN python -m venv /opt/venv
@@ -17,5 +17,12 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install dependencies inside the virtual environment
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Default command
-CMD ["sh", "-c", "if [ -f convert.py ]; then python convert.py; fi"]
+# Switch to a non-root user
+USER devseccpt
+
+# Ensure working directory remains consistent
+WORKDIR /app
+
+# Set entrypoint and default command
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["sh", "-c", "[ -f convert.py ] && python convert.py"]
