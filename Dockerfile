@@ -5,24 +5,23 @@ FROM python:3.12-alpine
 WORKDIR /app
 
 # Install required system dependencies
-RUN apk add --no-cache libreoffice 
-
-# Copy application files
-COPY . .
+RUN apk add --no-cache libreoffice libreoffice-common libreoffice-writer openjdk17-jre
 
 # Create and activate a virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install dependencies inside the virtual environment
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Switch to a non-root user
-USER devseccpt
+# Copy application files
+COPY . .
 
-# Ensure working directory remains consistent
-WORKDIR /app
+# Create a non-root user & switch
+RUN adduser -D -u 1000 devseccpt
+USER devseccpt
 
 # Set entrypoint and default command
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["sh", "-c", "[ -f convert.py ] && python convert.py"]
+CMD ["sh", "-c", "if [ -f convert.py ]; then python convert.py; else echo '❌ convert.py not found'; fi"]
