@@ -23,7 +23,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run --rm ${IMAGE_NAME}"
+                    sh "docker run --rm ${IMAGE_NAME} | tee output.log"
                 }
             }
         }
@@ -31,10 +31,15 @@ pipeline {
 
     post {
         success {
+            script {
+                archiveArtifacts artifacts: 'output.log', fingerprint: true
+            }
+            
             emailext subject: '✅ Jenkins Pipeline Success', 
-                     body: 'The pipeline executed successfully.', 
+                     body: 'The pipeline executed successfully. Please find the attached document for logs.', 
                      to: 'your-email@example.com', 
-                     from: 'jenkins@example.com'
+                     from: 'jenkins@example.com',
+                     attachmentsPattern: 'output.log'
         }
     }
 }
