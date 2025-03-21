@@ -28,7 +28,7 @@ pipeline {
         stage('Run Docker Container and Convert PDF') {
             steps {
                 script {
-                    sh 'docker run --rm ${WORKSPACE_DIR}:/app ${IMAGE_NAME}'  // Use correct image name
+                    sh 'docker run --rm -v ${WORKSPACE_DIR}:/app ${IMAGE_NAME}'  // Use correct image name
                 }
             }
         }
