@@ -24,7 +24,7 @@ pipeline {
             steps {
                 script {
                     def workspacePath = sh(script: 'pwd', returnStdout: true).trim() // Get workspace path dynamically
-                    sh "docker run --rm -v \"${workspacePath}:/output\" ${IMAGE_NAME}"
+                    sh "docker run --rm -v /var/lib/jenkins/workspace/word to pdf:/app jenkins"
                 }
             }
         }
