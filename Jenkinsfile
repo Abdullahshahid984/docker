@@ -2,12 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "word-to-pdf"
-        CONTAINER_NAME = "word-to-pdf-container"
-        WORKSPACE_DIR = "${WORKSPACE}"
-        PDF_FILE = "converted.pdf"
-        EMAIL_TO = "recipient@example.com"
-        EMAIL_SUBJECT = "Converted PDF File"
+        IMAGE_NAME = "jenkins"
+        PDF_FILE = "output.pdf"
     }
 
     stages {
@@ -20,30 +16,34 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${IMAGE_NAME} .'  // Make sure IMAGE_NAME is correct
+                    sh "docker build -t ${IMAGE_NAME}:latest ."
                 }
             }
         }
 
-        stage('Run Docker Container and Convert PDF') {
+        stage('Run Docker Container') {
             steps {
                 script {
-                    sh 'docker run --rm -v ${WORKSPACE_DIR}:/app ${IMAGE_NAME}'  // Use correct image name
-                }
-            }
-        }
-
-        stage('Send Email with PDF') {
-            steps {
-                script {
-                    emailext (
-                        to: "${EMAIL_TO}",
-                        subject: "${EMAIL_SUBJECT}",
-                        body: "The converted PDF is attached.",
-                        attachFiles: "${WORKSPACE_DIR}/${PDF_FILE}"
-                    )
+                    // Debugging: List available images
+                    sh "docker images"
+                    
+                    // Run container and mount workspace
+                    sh "docker run --rm -v ${WORKSPACE}:/app ${IMAGE_NAME}:latest"
                 }
             }
         }
     }
-}
+
+    post {
+        success {
+            script {
+                def pdfPath = "${WORKSPACE}/${PDF_FILE}"
+                if (fileExists(pdfPath)) {
+                    emailext subject: '✅ Jenkins Pipeline Success',
+                             body: 'The pipeline executed successfully. Please find the attached PDF file.',
+                             to: 'abdullahshahid984@gmail.com',
+                             from: 'abdullahshahid984@gmail.com',
+                             attachmentsPattern: "**/${PDF_FILE}"
+                } else {
+                    echo "⚠️ PDF file not found: ${pdfPath}"
+               
