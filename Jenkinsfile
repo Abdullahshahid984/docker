@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/Abdullahshahid984/docker.git' // Replace with your actual repository
+                 git branch: 'main', 'https://github.com/Abdullahshahid984/docker.git' // Replace with your actual repository
             }
         }
 
