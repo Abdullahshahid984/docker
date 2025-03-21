@@ -23,7 +23,8 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run --rm -v ${WORKSPACE}:/output ${IMAGE_NAME}"
+                    def workspacePath = sh(script: 'pwd', returnStdout: true).trim() // Get workspace path dynamically
+                    sh "docker run --rm -v \"${workspacePath}:/output\" ${IMAGE_NAME}"
                 }
             }
         }
@@ -32,13 +33,13 @@ pipeline {
     post {
         success {
             script {
-                def pdfFiles = findFiles(glob: '**/*.pdf') // Find all PDFs in the workspace
+                def pdfFiles = findFiles(glob: '**/*.pdf') // Find all PDFs
                 if (pdfFiles.length > 0) {
                     emailext subject: '✅ Jenkins Pipeline Success',
                              body: 'The pipeline executed successfully. Please find the attached PDF files.',
                              to: 'abdullahshahid984@gmail.com',
                              from: 'abdullahshahid984@gmail.com',
-                             attachmentsPattern: '**/*.pdf' // Attach all PDFs dynamically
+                             attachmentsPattern: '**/*.pdf'
                 } else {
                     echo "⚠️ No PDF files found in the workspace."
                 }
