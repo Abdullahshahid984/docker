@@ -2,49 +2,41 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "jenkins"
-        PDF_FILE = "output.pdf"
+        IMAGE_NAME = "my-python-app"
+        CONTAINER_NAME = "python-converter"
+        OUTPUT_PDF = "output.pdf"
+        SMTP_SERVER = "smtp.gmail.com" // Update with your SMTP server
+        RECIPIENT_EMAIL = "abdullahshahid984@gmail.com" // Update with recipient email
+        SENDER_EMAIL = "abdullahshahid984@gmail.com" // Update with sender email
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/Abdullahshahid984/docker.git'
+                git 'https://github.com/Abdullahshahid984/docker.git' // Replace with your actual repository
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME}:latest ."
+                    sh "docker build -t ${IMAGE_NAME} ."
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Run Container') {
             steps {
                 script {
-                    sh "docker images"  // Debugging step to list available images
-                    sh "docker run --rm -v ${WORKSPACE}:/app ${IMAGE_NAME}:latest"
+                    sh "docker run --rm --name ${CONTAINER_NAME} ${IMAGE_NAME}"
                 }
             }
         }
-    }
 
-    post {
-        success {
-            script {
-                def pdfPath = "${WORKSPACE}/${PDF_FILE}"
-                if (fileExists(pdfPath)) {
-                    emailext (
-                        subject: '✅ Jenkins Pipeline Success',
-                        body: 'The pipeline executed successfully. Please find the attached PDF file.',
-                        to: 'abdullahshahid984@gmail.com',
-                        from: 'abdullahshahid984@gmail.com',
-                        attachmentsPattern: "**/${PDF_FILE}"
-                    )
-                } else {
-                    echo "⚠️ PDF file not found: ${pdfPath}"
+        stage('Send Email with PDF') {
+            steps {
+                script {
+                    sh "echo 'PDF conversion completed. Find the attached PDF.' | mail -s 'Converted PDF' -a ${OUTPUT_PDF} -r ${SENDER_EMAIL} ${RECIPIENT_EMAIL}"
                 }
             }
         }
