@@ -24,10 +24,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    // Debugging: List available images
-                    sh "docker images"
-                    
-                    // Run container and mount workspace
+                    sh "docker images"  // Debugging step to list available images
                     sh "docker run --rm -v ${WORKSPACE}:/app ${IMAGE_NAME}:latest"
                 }
             }
@@ -39,11 +36,17 @@ pipeline {
             script {
                 def pdfPath = "${WORKSPACE}/${PDF_FILE}"
                 if (fileExists(pdfPath)) {
-                    emailext subject: '✅ Jenkins Pipeline Success',
-                             body: 'The pipeline executed successfully. Please find the attached PDF file.',
-                             to: 'abdullahshahid984@gmail.com',
-                             from: 'abdullahshahid984@gmail.com',
-                             attachmentsPattern: "**/${PDF_FILE}"
+                    emailext (
+                        subject: '✅ Jenkins Pipeline Success',
+                        body: 'The pipeline executed successfully. Please find the attached PDF file.',
+                        to: 'abdullahshahid984@gmail.com',
+                        from: 'abdullahshahid984@gmail.com',
+                        attachmentsPattern: "**/${PDF_FILE}"
+                    )
                 } else {
                     echo "⚠️ PDF file not found: ${pdfPath}"
-               
+                }
+            }
+        }
+    }
+}
