@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "jenkins_pdf_converter" // Ensure the image name is correct
-        PDF_FILE = "output.pdf"
+        IMAGE_NAME = "jenkins"
     }
 
     stages {
@@ -24,7 +23,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh "docker run --rm -v $WORKSPACE:/app ${IMAGE_NAME}"
+                    sh "docker run --rm -v ${WORKSPACE}:/output ${IMAGE_NAME}"
                 }
             }
         }
@@ -33,15 +32,15 @@ pipeline {
     post {
         success {
             script {
-                def pdfPath = "${WORKSPACE}/${PDF_FILE}"
-                if (fileExists(pdfPath)) {
+                def pdfFiles = findFiles(glob: '**/*.pdf') // Find all PDFs in the workspace
+                if (pdfFiles.length > 0) {
                     emailext subject: '✅ Jenkins Pipeline Success',
-                             body: 'The pipeline executed successfully. Please find the attached PDF file.',
+                             body: 'The pipeline executed successfully. Please find the attached PDF files.',
                              to: 'abdullahshahid984@gmail.com',
                              from: 'abdullahshahid984@gmail.com',
-                             attachmentsPattern: "**/${PDF_FILE}"
+                             attachmentsPattern: '**/*.pdf' // Attach all PDFs dynamically
                 } else {
-                    echo "⚠️ PDF file not found: ${pdfPath}"
+                    echo "⚠️ No PDF files found in the workspace."
                 }
             }
         }
