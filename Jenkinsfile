@@ -1,42 +1,39 @@
 pipeline {
     agent any
-
     environment {
-        IMAGE_NAME = "my-python-app"
-        CONTAINER_NAME = "python-converter"
-        OUTPUT_PDF = "output/output.pdf"
-        SMTP_SERVER = "smtp.gmail.com" // Update with your SMTP server
-        RECIPIENT_EMAIL = "abdullahshahid984@gmail.com" // Update with recipient email
-        SENDER_EMAIL = "abdullahshahid984@gmail.com" // Update with sender email
+        OUTPUT_PDF = "\"/var/lib/jenkins/workspace/word to pdf/output/output.pdf\""
+        RECIPIENT_EMAIL = "abdullahshahid984@gmail.com"
     }
-
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/Abdullahshahid984/docker.git'
+                git url: 'https://github.com/Abdullahshahid984/docker.git', branch: 'main'
             }
         }
-
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${IMAGE_NAME}:latest ."
-                }
+                sh 'docker build -t my-python-app:latest .'
             }
         }
-
         stage('Run Container') {
             steps {
-                script {
-                    sh "docker run --rm --name ${CONTAINER_NAME} -v \"${WORKSPACE}/output:/app/output\" ${IMAGE_NAME}:latest"
-                }
+                sh 'docker run --rm --name python-converter -v "/var/lib/jenkins/workspace/word to pdf/output:/app/output" my-python-app:latest'
             }
         }
-
         stage('Send Email with PDF') {
             steps {
                 script {
-                    sh "echo 'PDF conversion completed. Find the attached PDF.' | mail -s 'Converted PDF' -a ${WORKSPACE}/${OUTPUT_PDF} -r ${SENDER_EMAIL} ${RECIPIENT_EMAIL}"
+                    def emailCommand = """
+                    echo "PDF conversion completed. Find the attached PDF." | mail -s "Converted PDF" -a ${OUTPUT_PDF} -r ${RECIPIENT_EMAIL} ${RECIPIENT_EMAIL}
+                    """
+                    def emailStatus = sh(script: emailCommand, returnStatus: true)
+
+                    if (emailStatus != 0) {
+                        echo "⚠️ Mail command failed, trying mutt..."
+                        sh """
+                        echo "PDF conversion completed. Find the attached PDF." | mutt -s "Converted PDF" -a ${OUTPUT_PDF} -- ${RECIPIENT_EMAIL}
+                        """
+                    }
                 }
             }
         }
