@@ -2,7 +2,12 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "jenkins"
+        IMAGE_NAME = "word-to-pdf"
+        CONTAINER_NAME = "word-to-pdf-container"
+        WORKSPACE_DIR = "${WORKSPACE}"
+        PDF_FILE = "converted.pdf"
+        EMAIL_TO = "recipient@example.com"
+        EMAIL_SUBJECT = "Converted PDF File"
     }
 
     stages {
@@ -15,33 +20,28 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${IMAGE_NAME} ."
+                    sh 'docker build -t ${IMAGE_NAME} .'  // Make sure IMAGE_NAME is correct
                 }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('Run Docker Container and Convert PDF') {
             steps {
                 script {
-                    def workspacePath = sh(script: 'pwd', returnStdout: true).trim() // Get workspace path dynamically
-                    sh "docker run --rm -v /var/lib/jenkins/workspace/word to pdf:/app jenkins"
+                    sh 'docker run --rm ${WORKSPACE_DIR}:/app ${IMAGE_NAME}'  // Use correct image name
                 }
             }
         }
-    }
 
-    post {
-        success {
-            script {
-                def pdfFiles = findFiles(glob: '**/*.pdf') // Find all PDFs
-                if (pdfFiles.length > 0) {
-                    emailext subject: '✅ Jenkins Pipeline Success',
-                             body: 'The pipeline executed successfully. Please find the attached PDF files.',
-                             to: 'abdullahshahid984@gmail.com',
-                             from: 'abdullahshahid984@gmail.com',
-                             attachmentsPattern: '**/*.pdf'
-                } else {
-                    echo "⚠️ No PDF files found in the workspace."
+        stage('Send Email with PDF') {
+            steps {
+                script {
+                    emailext (
+                        to: "${EMAIL_TO}",
+                        subject: "${EMAIL_SUBJECT}",
+                        body: "The converted PDF is attached.",
+                        attachFiles: "${WORKSPACE_DIR}/${PDF_FILE}"
+                    )
                 }
             }
         }
