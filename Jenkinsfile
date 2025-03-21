@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                 git branch: 'main', 'https://github.com/Abdullahshahid984/docker.git' // Replace with your actual repository
+                git branch: 'main', url: 'https://github.com/Abdullahshahid984/docker.git' // Corrected syntax
             }
         }
 
@@ -28,7 +28,7 @@ pipeline {
         stage('Run Container') {
             steps {
                 script {
-                    sh "docker run --rm --name ${CONTAINER_NAME} ${IMAGE_NAME}"
+                    sh "docker run --rm --name ${CONTAINER_NAME} -v \$(pwd)/output:/app/output ${IMAGE_NAME}"
                 }
             }
         }
@@ -36,7 +36,10 @@ pipeline {
         stage('Send Email with PDF') {
             steps {
                 script {
-                    sh "echo 'PDF conversion completed. Find the attached PDF.' | mail -s 'Converted PDF' -a ${OUTPUT_PDF} -r ${SENDER_EMAIL} ${RECIPIENT_EMAIL}"
+                    sh """
+                        echo "PDF conversion completed. Find the attached PDF." | \
+                        mail -s "Converted PDF" -a output/${OUTPUT_PDF} -r ${SENDER_EMAIL} ${RECIPIENT_EMAIL}
+                    """
                 }
             }
         }
