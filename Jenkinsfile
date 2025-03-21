@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "jenkins"
-        PDF_FILE = "output.pdf"  // Change this based on your script's output filename
+        IMAGE_NAME = "jenkins_pdf_converter" // Ensure the image name is correct
+        PDF_FILE = "output.pdf"
     }
 
     stages {
